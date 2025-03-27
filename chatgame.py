@@ -68,7 +68,7 @@ async def select(ctx, *, character_name):
             next_id = 1 if result[0] is None else result[0] + 1
             
             # Generate a default email based on Discord username
-            default_email = f"{username.lower().replace(' ', '')}_{discord_id}@placeholder.com"
+            default_email = f"{username.lower().replace(' ', '')}_{discord_id}@gmail.com"
     
             # Insert new user
             cursor.execute(
