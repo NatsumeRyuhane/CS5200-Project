@@ -4,11 +4,16 @@ import mysql.connector
 import os
 from mysql.connector import Error
 from dotenv import load_dotenv
+import ssl
 
+ssl._create_default_https_context = ssl._create_unverified_context
 load_dotenv()
 
 # connect to MySQL
 DATABSE_PASSWORD = os.getenv('DATABASE_PASSWORD')
+
+DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+
 db_config = {
     'host': '35.199.185.202',
     'user': 'root',
@@ -58,11 +63,26 @@ async def select(ctx, *, character_name):
         user_result = cursor.fetchone()
         
         if not user_result:
-            # New users need to register first
-            await ctx.send("You need to register first! Use `!register <email>` to create an account.")
-            return
-        
-        user_id = user_result[0]
+            cursor.execute("SELECT MAX(user_id) FROM User")
+            result = cursor.fetchone()
+            next_id = 1 if result[0] is None else result[0] + 1
+            
+            # Generate a default email based on Discord username
+            default_email = f"{username.lower().replace(' ', '')}_{discord_id}@placeholder.com"
+    
+            # Insert new user
+            cursor.execute(
+                "INSERT INTO User (user_id, username, email, discord_id) VALUES (%s, %s, %s, %s)",
+                (next_id, username, default_email, discord_id)
+            )
+            conn.commit()
+            
+            await ctx.send(f"Welcome, {username}! You've been automatically registered. Now talking with {char_name}...")
+            
+            # Get the newly created user_id
+            user_id = next_id
+        else:
+            user_id = user_result[0]
         
         # Record this interaction in the Interaction table
         cursor.execute(
@@ -135,4 +155,4 @@ async def select(ctx, *, character_name):
         cursor.close()
         conn.close()
 # Run the bot
-bot.run('DISCORD_BOT_TOKEN')
+bot.run(DISCORD_BOT_TOKEN)
