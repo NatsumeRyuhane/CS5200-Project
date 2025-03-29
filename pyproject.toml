@@ -1,0 +1,16 @@
+[project]
+name = "CS5200-FP"
+version = "0.1.0"
+description = "CS5200-FP"
+readme = "README.md"
+requires-python = ">=3.9, <4.0"
+
+[tool.nonebot]
+adapters = [
+    # { name = "OneBot V12", module_name = "nonebot.adapters.onebot.v12" },
+    # { name = "Console", module_name = "nonebot.adapters.console" },
+    { name = "Discord", module_name = "nonebot.adapters.discord" }
+]
+plugins = ["nonebot_plugin_alconna"]
+plugin_dirs = ["plugins"]
+builtin_plugins = []
