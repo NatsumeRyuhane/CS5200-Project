@@ -3,7 +3,7 @@ from nonebot.adapters import Bot
 from nonebot.adapters.discord import Message, MessageSegment, MessageEvent
 
 # Create simple command handler
-register_cmd = on_command("register", aliases={".register"}, priority=10, block=True)
+register_cmd = on_command("register", priority=10, block=True)
 
 import chatgame
 

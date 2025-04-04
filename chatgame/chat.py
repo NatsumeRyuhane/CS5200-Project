@@ -312,36 +312,36 @@ async def get_created_characters(user_id: str) -> List[str]:
 async def get_character_history(user_id: str) -> List[Dict[str, str]]:
     """
     Get the list of characters interacted with by the user.
-
-    Args:
-        user_id: The ID of the user.
-
-    Returns:
-        A list of dictionaries containing character information (name and ID),
-        ordered by most recent interaction.
     """
     db = get_db_handler()
     chars = []
 
+    # Fix: Include timestamp in SELECT since we're using it in ORDER BY with DISTINCT
     result = db.fetch_all(
-        "SELECT DISTINCT character_id FROM Interaction WHERE user_id = %s ORDER BY timestamp DESC", (user_id,))
-    if result is None:
+        """SELECT character_id, MAX(timestamp) as latest_time 
+           FROM Interaction 
+           WHERE user_id = %s 
+           GROUP BY character_id 
+           ORDER BY latest_time DESC""", (user_id,))
+
+    if not result:
         return []
 
     for char in result:
         try:
             validate_character_id(char["character_id"])
-        except UserNotFoundError:
+        except CharacterNotFoundError:  # Changed from UserNotFoundError which seems wrong
             continue
 
         character_name = db.fetch_one(
             "SELECT name FROM Virtual_Character WHERE character_id = %s", (char["character_id"],))
 
-        c = {
-            "name"        : character_name["name"],
-            "character_id": char["character_id"]
-        }
-        chars.append(c)
+        if character_name:
+            c = {
+                "name"        : character_name["name"],
+                "character_id": char["character_id"]
+            }
+            chars.append(c)
 
     return chars
 
@@ -426,11 +426,11 @@ async def get_character_info(character_id: str) -> Dict[str, Union[str, int]]:
         raise CharacterNotFoundError("Character not found")
 
     return {
-        "name"        : result["name"],
-        "character_id": result["character_id"],
-        "description" : result["description"],
-        "creator_id"  : result["creator_id"],
-        "settings"    : result["settings"],
+        "name"         : result["name"],
+        "character_id" : result["character_id"],
+        "description"  : result["description"],
+        "creator_id"   : result["creator_id"],
+        "settings"     : result["settings"],
         "creation_time": result["creation_time"]
     }
 

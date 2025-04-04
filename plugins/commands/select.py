@@ -7,7 +7,7 @@ from nonebot.params import CommandArg
 import chatgame
 
 # Create command handler
-select_cmd = on_command("select", aliases={".select"}, priority=10, block=True)
+select_cmd = on_command("select", priority=10, block=True)
 
 @select_cmd.handle()
 async def command_handler(bot: Bot, event: MessageEvent, args: Message = CommandArg()):

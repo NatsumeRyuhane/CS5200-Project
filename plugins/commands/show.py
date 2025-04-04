@@ -7,23 +7,23 @@ from typing import List, Dict, Any, Optional
 import chatgame
 
 # Create command handlers for different show commands
-show_chars = on_command("show.characters", aliases={"show characters", ".show characters"}, priority=10, block=True)
+show_chars = on_command("show.characters", aliases={"show characters"}, priority=10, block=True)
 show_chars_current = on_command("show.characters.current",
-                                aliases={"show characters current", ".show characters current"},
+                                aliases={"show characters current"},
                                 priority=10,
                                 block=True)
 show_chars_created = on_command("show.characters.created",
-                                aliases={"show characters created", ".show characters created"},
+                                aliases={"show characters created"},
                                 priority=10,
                                 block=True)
 show_chars_history = on_command("show.characters.history",
-                                aliases={"show characters history", ".show characters history"},
+                                aliases={"show characters history"},
                                 priority=10,
                                 block=True)
 
-show_points = on_command("show.points", aliases={"show points", ".show points"}, priority=10, block=True)
+show_points = on_command("show.points", aliases={"show points"}, priority=10, block=True)
 show_points_history = on_command("show.points.history",
-                                 aliases={"show points history", ".show points history"},
+                                 aliases={"show points history"},
                                  priority=10,
                                  block=True)
 

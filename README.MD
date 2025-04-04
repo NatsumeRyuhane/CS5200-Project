@@ -29,11 +29,7 @@ For more details, check the [documentation](https://nonebot.dev/docs/).
 
 3. Create a `.env` file from the template and fill in the required environment variables.
 
-4. Run the following command:
-
-    ```bash
-    nb run
-    ```
+4. Run the `main.py` script
 
 ### For Team Development
 

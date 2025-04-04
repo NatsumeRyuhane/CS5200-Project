@@ -5,7 +5,7 @@ from nonebot.adapters import Bot
 from nonebot.adapters.discord import Message, MessageSegment, MessageEvent, GuildMessageCreateEvent
 
 # Use a simpler on_command approach instead of Alconna
-ping = on_command("ping", aliases={".ping"}, priority=10, block=True)
+ping = on_command("ping", priority=10, block=True)
 
 @ping.handle()
 async def handle_ping(bot: Bot, event: MessageEvent):
