@@ -19,9 +19,17 @@ def sql_transaction(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        connection = self.pool.get_connection()
-        cursor = connection.cursor(dictionary=True)
+        connection = None
+        cursor = None
         try:
+            connection = self.pool.get_connection()
+            
+            # Validate connection is active
+            if not connection.is_connected():
+                connection.reconnect(attempts=3, delay=1)
+                
+            cursor = connection.cursor(dictionary=True)
+            
             # Start transaction
             connection.start_transaction()
 
@@ -31,14 +39,24 @@ def sql_transaction(func):
             # If function executes successfully, commit
             connection.commit()
             return result
+        except mysql.connector.Error as e:
+            # Log the error
+            print(f"Database error: {e}")
+            # If any error occurs, rollback
+            if connection and connection.is_connected():
+                connection.rollback()
+            raise e
         except Exception as e:
             # If any error occurs, rollback
-            connection.rollback()
+            if connection and connection.is_connected():
+                connection.rollback()
             raise e
         finally:
             # Always close cursor and connection
-            cursor.close()
-            connection.close()
+            if cursor:
+                cursor.close()
+            if connection and connection.is_connected():
+                connection.close()
 
     return wrapper
 
@@ -101,6 +119,9 @@ class MySQLHandler:
             "host"    : getenv("DATABASE_HOST", "localhost"),
             "port"    : getenv("DATABASE_PORT", "3306"),
             "database": getenv("DATABASE_NAME", "CS5200"),
+            "pool_reset_session": True,  # Reset session variables when connection returns to pool
+            "pool_recycle": 3600,        # Recycle connections after 1 hour
+            "connect_timeout": 10        # Connection timeout in seconds
         }
 
     def _initialize_pool(self):
@@ -130,6 +151,23 @@ class MySQLHandler:
         self._initialize_pool()
         return self
 
+    def check_connection(self) -> bool:
+        """
+        Check if database connection is working
+        
+        Returns:
+            True if connection is working, False otherwise
+        """
+        connection = None
+        try:
+            connection = self.pool.get_connection()
+            return connection.is_connected()
+        except Exception:
+            return False
+        finally:
+            if connection and connection.is_connected():
+                connection.close()
+
     @sql_transaction
     def execute(self, cursor, connection, query: str, params: Optional[Union[Tuple, Dict]] = None) -> int:
         """
@@ -148,7 +186,6 @@ class MySQLHandler:
         return cursor.rowcount
 
     @sql_transaction
-
     def execute_file(self, cursor, connection, file_path):
         """
         Execute SQL commands from a file

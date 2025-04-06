@@ -10,6 +10,9 @@ with memory, affinity tracking, and customization.
 - Conversation memory tracking
 - Character-user relationship (affinity) tracking
 - Customizable character details
+- Optimized database connection pooling
+- Robust error handling and retry mechanisms
+- Performance improvements for AI chat
 
 ## Setup Instructions
 
@@ -31,6 +34,22 @@ For more details, check the [documentation](https://nonebot.dev/docs/).
 
 4. Run the `main.py` script
 
+    ```bash
+    python main.py
+    ```
+
+### Environment Variables
+
+The following environment variables are required:
+
+- `DISCORD_BOT_TOKEN`: Your Discord bot token
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `DATABASE_USER`: Database username
+- `DATABASE_PASSWORD`: Database password
+- `DATABASE_HOST`: Database host
+- `DATABASE_PORT`: Database port
+- `DATABASE_NAME`: Database name
+
 ### For Team Development
 
 #### Option 1: Individual Test Bots
@@ -43,3 +62,27 @@ For more details, check the [documentation](https://nonebot.dev/docs/).
 ### Commands
 
 - `!select <character_name>` - Select a character to chat with
+
+## Technical Improvements
+
+The following optimizations have been implemented:
+
+1. **Database Connection Pooling**:
+   - Improved connection validation and reconnection
+   - Better error handling for database operations
+   - Connection pool with proper resource management
+
+2. **Error Handling and Retry Mechanisms**:
+   - Added retry with exponential backoff for OpenAI API calls
+   - Better error logging and categorization
+   - Type-safe validation for user inputs
+
+3. **Performance Optimizations**:
+   - LRU caching for frequently used data
+   - Message history management to prevent memory issues
+   - Specific error handling for different API error types
+
+4. **Memory Management**:
+   - Improved affinity value validation
+   - Automatic context pruning to maintain performance
+   - Better input validation
