@@ -11,10 +11,16 @@ matcher = on_message(
 from utils.chatgpt import chat, ChatContext
 import random
 import chatgame
+import asyncio
+import logging
 
 
 @matcher.handle()
 async def handle_logger(bot: Bot, event: MessageEvent):
+    # Ignore messages with command prefix
+    if event.content.startswith('!'):
+        return
+        
     # get the internal user id based on the event's discord user id
     user_discord_id = event.get_user_id()
     try:
@@ -45,27 +51,49 @@ async def handle_logger(bot: Bot, event: MessageEvent):
     # List of template messages in case of no response
     no_msg = [
         "<Unable to get a response from OPENAI>",
+        "I'm having trouble processing that. Let's try again in a moment.",
+        "My apologies, I seem to be experiencing technical difficulties.",
     ]
 
-    try:
-        msg = await chat(context)
-    except:
-        msg = None
+    # Send typing indicator
+    await matcher.send(
+        message=Message([
+            MessageSegment.text("*typing...*")
+        ])
+    )
 
-    if msg:
-        await chatgame.create_new_message(session_id, msg, None, from_user=False)
-        await matcher.send(
-            message=Message([
-                MessageSegment.text(msg)
-            ])
-        )
-    else:
-        await matcher.send(
-            message=Message([
-                MessageSegment.reference(event.message_id),
-                MessageSegment.text(random.choice(no_msg))
-            ])
-        )
+    # Try up to 3 times with exponential backoff
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            msg = await chat(context)
+            if msg:
+                await chatgame.create_new_message(session_id, msg, None, from_user=False)
+                await matcher.send(
+                    message=Message([
+                        MessageSegment.text(msg)
+                    ])
+                )
+                return
+            else:
+                # Wait briefly before retry
+                await asyncio.sleep(1 * (2 ** attempt))  # Exponential backoff
+        except Exception as e:
+            logging.error(f"Error in chat attempt {attempt+1}: {str(e)}")
+            if attempt < max_retries - 1:
+                # Wait before retry
+                await asyncio.sleep(1 * (2 ** attempt))  # Exponential backoff
+            else:
+                # Last attempt failed
+                break
+
+    # If we get here, all attempts failed
+    await matcher.send(
+        message=Message([
+            MessageSegment.reference(event.message_id),
+            MessageSegment.text(random.choice(no_msg))
+        ])
+    )
 
 
 """"""
